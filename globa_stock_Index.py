@@ -82,6 +82,8 @@ def stock_period_report(stock_code, stock_area, start_time, end_time):
     
     start_time = time_Mod(start_time)
     end_time = time_Mod(end_time)
+    print ("start_time", start_time)
+    print ("end_time", end_time)
     
     url = f"https://query1.finance.yahoo.com/v8/finance/chart/{stock_code}.{stock_area}?period1={start_time}&period2={end_time}&interval=1d&events=history&=hP2rOschxO0"
     
@@ -107,9 +109,49 @@ def stock_period_report(stock_code, stock_area, start_time, end_time):
 
     df = pd.DataFrame(
         data["chart"]["result"][0]["indicators"]["quote"][0],
-            index=pd.to_datetime(np.array(data["chart"]["result"][0]["timestamp"])),
+            index=np.array(data["chart"]["result"][0]["timestamp"]),
             columns=["open","high","low","close","volume"])
     print(df)
+    
+    df = pd.DataFrame(
+        data["chart"]["result"][0]["indicators"]["quote"][0],
+            columns=["open","high","low","close","volume"])
+    print(df)
+    
+    str_time=time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(end_time-86400*0))
+    print("Time: ", str_time)
+    print(df.tail(10).iloc[0, 0])
+    print(df.tail(10).iloc[1, 0])
+    print(df.tail(10).iloc[2, 0])
+    print(df.tail(10).iloc[3, 0])
+    print(df.tail(10).iloc[4, 0])
+    print(df.tail(10).iloc[5, 0])
+    print(df.tail(10).iloc[6, 0])
+    print(df.tail(10).iloc[7, 0])
+    print(df.tail(10).iloc[8, 0])
+    print(df.tail(10).iloc[9, 0])
+
+    """
+    str_time=time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(end_time-86400*5))
+    print("Time: ", str_time)
+    print(df.tail().iloc[4, 0])
+    str_time=time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(end_time-86400*4))
+    print("Time: ", str_time)
+    print(df.tail().iloc[3, 0])
+    str_time=time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(end_time-86400*3))
+    print("Time: ", str_time)
+    print(df.tail().iloc[2, 0])
+    str_time=time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(end_time-86400*2))
+    print("Time: ", str_time)
+    print(df.tail().iloc[1, 0])
+    str_time=time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(end_time-86400*1))
+    print("Time: ", str_time)
+    print(df.tail().iloc[0, 0])  
+    str_time=time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(end_time-86400*0))
+    print("Time: ", str_time)
+    """
+
+    
     """
     # 把json格式資料放入pandas中
     df = pd.DataFrame(
@@ -138,6 +180,6 @@ def stock_period_report(stock_code, stock_area, start_time, end_time):
     # 偽停頓
     time.sleep(5)
 
-print (stock_period_report(2330, "TW", "2021-10-08 09:00:00", "2021-10-28 13:30:00"))
+print (stock_period_report(2330, "TW", "2021-10-15 09:00:00", "2021-10-28 13:30:00"))
     
 

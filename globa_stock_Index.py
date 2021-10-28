@@ -70,6 +70,7 @@ def time_Mod(timeString):
     """
     struct_time = time.strptime(timeString, "%Y-%m-%d %H:%M:%S") # 轉成時間元組
     time_stamp = int(time.mktime(struct_time)) # 轉成時間戳
+    print (time_stamp)
     return time_stamp 
 
     """ 
@@ -78,27 +79,38 @@ def time_Mod(timeString):
     """
 
 def stock_period_report(stock_code, stock_area, start_time, end_time):
-    print ("stock_period_report()")
-    """
-    print ("stock_code", stock_code)
-    print ("stock_area", stock_area)
-    print ("start_time", start_time)
-    print ("end_time"  , end_time)
-    """
+    
+    start_time = time_Mod(start_time)
+    end_time = time_Mod(end_time)
+    
     url = f"https://query1.finance.yahoo.com/v8/finance/chart/{stock_code}.{stock_area}?period1={start_time}&period2={end_time}&interval=1d&events=history&=hP2rOschxO0"
     
     # set_header_ua 產生 headers
     headers = {'user-agent': set_header_ua()}
+    #url 提取資料並轉成字串(使用requests獲取json資料)
     response = requests.get(url, headers=headers)
-
-    print("response", response)
+    text = response.text
+    
+    print("type(text) = ", type(text))
+    #print("text = ", text)
     print('')
+    
     # 序列化資料回報
-    data = json.loads(response.text)
-    print("data", data)
+    data = json.loads(text)
+    print("type(data) = ", type(data))
+    #print("data = ", data)
     print('')
     
-    
+    # 把json格式資料放入pandas中
+    df = pd.DataFrame(data)
+    #print (df)
+
+    df = pd.DataFrame(
+        data["chart"]["result"][0]["indicators"]["quote"][0],
+            index=pd.to_datetime(np.array(data["chart"]["result"][0]["timestamp"])),
+            columns=["open","high","low","close","volume"])
+    print(df)
+    """
     # 把json格式資料放入pandas中
     df = pd.DataFrame(
         data["chart"]["result"][0]["indicators"]["quote"][0],
@@ -107,27 +119,25 @@ def stock_period_report(stock_code, stock_area, start_time, end_time):
         ),
         columns=["open","high","low","close","volume"]
     )
-    
-   # print (data)
+
+    #print (data)
     # 印出前3行
     print(df[:3])
-    """
+    
     #印出前5行
     print(df.head())
     #印出後5行
     print(df.tail())
-    """
     
     # 寫成csv
     df.tail().to_csv(f"{stock_code}_最近五天.csv")
     df.to_csv(f"{stock_code}_{start_time}_{end_time}.csv")
-    
+    """
     print("===finished===")
     
     # 偽停頓
     time.sleep(5)
-    return 0
 
-print (stock_period_report(2330, "TW", time_Mod("2021-10-12 13:30:00"), time_Mod("2021-10-26 08:00:00")))
+print (stock_period_report(2330, "TW", "2021-10-08 09:00:00", "2021-10-28 13:30:00"))
     
 

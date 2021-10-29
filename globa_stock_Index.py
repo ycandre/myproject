@@ -19,7 +19,31 @@ def set_header_ua():
     user_agent = UserAgent()
     return user_agent.random
 
+def stock2csv(stock_code, stock_area, start_t, end_t):
+    
+    start_time = time_Mod(start_t)
+    end_time = time_Mod(end_t)
+    str_start_time=time.strftime("%Y%m%d", time.localtime(start_time))
+    str_end_time=time.strftime("%Y%m%d", time.localtime(end_time))
+    
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{stock_code}.{stock_area}?period1={start_time}&period2={end_time}&interval=1d&events=history&=hP2rOschxO0"
+    
+    headers = {'user-agent': set_header_ua()}
+    response = requests.get(url, headers=headers)
+    text = response.text
+        
+    # 序列化資料回報
+    data = json.loads(text)
+    
+    # 把json格式資料放入pandas中
+    df = pd.DataFrame(data)
 
+    df = pd.DataFrame(
+        data["chart"]["result"][0]["indicators"]["quote"][0],
+            index=np.array(data["chart"]["result"][0]["timestamp"]),
+            columns=["open","high","low","close","volume"])
+    df.to_csv(f"{stock_code}_{str_start_time}_{str_end_time}.csv")
+    
 def monthly_report(year, month):
     print ("monthly_report()")
     # 假如是西元，轉成民國
@@ -70,13 +94,21 @@ def time_Mod(timeString):
     """
     struct_time = time.strptime(timeString, "%Y-%m-%d %H:%M:%S") # 轉成時間元組
     time_stamp = int(time.mktime(struct_time)) # 轉成時間戳
-    print (time_stamp)
     return time_stamp 
 
     """ 
     print (time_Mod("2021-10-22 08:00:00"))
     print (time_Mod("2021-10-26 08:00:00"))
     """
+
+def StocK_MA(ma):
+    yourDataList = [1,2,3,5,6,10,12,14,12,30]
+    myObj = pd.Series(yourDataList).rolling(ma).mean()
+    return myObj
+
+
+
+
 
 def stock_period_report(stock_code, stock_area, start_time, end_time):
     
@@ -120,16 +152,25 @@ def stock_period_report(stock_code, stock_area, start_time, end_time):
     
     str_time=time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(end_time-86400*0))
     print("Time: ", str_time)
-    print(df.tail(10).iloc[0, 0])
-    print(df.tail(10).iloc[1, 0])
-    print(df.tail(10).iloc[2, 0])
-    print(df.tail(10).iloc[3, 0])
-    print(df.tail(10).iloc[4, 0])
-    print(df.tail(10).iloc[5, 0])
-    print(df.tail(10).iloc[6, 0])
-    print(df.tail(10).iloc[7, 0])
-    print(df.tail(10).iloc[8, 0])
-    print(df.tail(10).iloc[9, 0])
+    
+    
+    """ open   high    low  close    volume
+    0  [0,0]  [0,1]  [0,2]  [0,3]  [0,4]
+    1  [1,0]  [1,1]  [1,2]  [1,3]  [1,4]
+    2  [2,0]  [2,1]  [2,2]  [2,3]  [2,4]
+        open   high    low  close    volume
+    0  592.0  600.0  586.0  600.0  53150216
+    1  604.0  604.0  590.0  590.0  19158568
+    2  598.0  600.0  593.0  600.0  17386359
+    """
+    print(" ")
+    for i in range(5):
+        df.iloc[i+1, 0] = df.iloc[i+1, 0] + df.iloc[i, 0]
+    
+        print("df.iloc[  ",i," 0]=",df.iloc[i, 0])
+        print("df.iloc[1+",i," 0]=",df.iloc[i+1, 0])
+        print (df.iloc[4, 0]/5)
+    
 
     """
     str_time=time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(end_time-86400*5))
@@ -180,6 +221,5 @@ def stock_period_report(stock_code, stock_area, start_time, end_time):
     # 偽停頓
     time.sleep(5)
 
-print (stock_period_report(2330, "TW", "2021-10-15 09:00:00", "2021-10-28 13:30:00"))
-    
-
+print (stock2csv(2330, "TW", "2021-10-15 09:00:00", "2021-10-28 13:30:00"))  
+#print (StocK_MA(5))

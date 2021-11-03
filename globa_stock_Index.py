@@ -5,11 +5,14 @@ Created on Tue Oct 26 10:09:02 2021
 @author: AndrewL
 """
 
-import pandas as pd
 import requests
 import time
 import json
 import numpy as np
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import sqlite3
 
 from fake_useragent import UserAgent
 from requests.exceptions import HTTPError
@@ -18,6 +21,16 @@ from io import StringIO
 def set_header_ua():
     user_agent = UserAgent()
     return user_agent.random
+
+
+def find_index():
+    
+    tsmc_df = pd.read_csv("2330_20211015_20211028.csv")
+    df.iloc[:,0]=df.to_datetime(data["chart"]["result"][0]["timestamp"])
+    print(df)    
+
+    
+    
 
 def stock2csv(stock_code, stock_area, start_t, end_t):
     
@@ -38,11 +51,22 @@ def stock2csv(stock_code, stock_area, start_t, end_t):
     # 把json格式資料放入pandas中
     df = pd.DataFrame(data)
 
+
     df = pd.DataFrame(
         data["chart"]["result"][0]["indicators"]["quote"][0],
-            index=np.array(data["chart"]["result"][0]["timestamp"]),
-            columns=["open","high","low","close","volume"])
-    df.to_csv(f"{stock_code}_{str_start_time}_{str_end_time}.csv")
+            columns=["Date","open","high","low","close","volume"])
+    
+    df.iloc[:,0]=data["chart"]["result"][0]["timestamp"]
+    df.to_csv(f"{stock_code}_{str_start_time}_{str_end_time}.csv", index=False)
+        
+    for i in df.iloc[:,0]:
+        struct_time = time.localtime(i)
+        print(time.strftime("%Y/%m/%d", struct_time))
+        #df.iloc[:,0] = time.strftime("%Y/%m/%d", struct_time)
+
+    #struct_time = time.localtime(df.iloc[i,0])
+    #df.iloc[:,0] = time.strftime("%Y/%m/%d", struct_time)
+    print(df)
     
 def monthly_report(year, month):
     print ("monthly_report()")
@@ -88,7 +112,6 @@ def monthly_report(year, month):
 
 
 def time_Mod(timeString):
-    #print ("time_Mod()")
     """ 
     "輸入格式: 2021-10-26 08:00:00" >>> 輸出格式: 1635206400
     """
@@ -141,18 +164,25 @@ def stock_period_report(stock_code, stock_area, start_time, end_time):
 
     df = pd.DataFrame(
         data["chart"]["result"][0]["indicators"]["quote"][0],
-            index=np.array(data["chart"]["result"][0]["timestamp"]),
-            columns=["open","high","low","close","volume"])
+            #index=np.array(data["chart"]["result"][0]["timestamp"]),
+            columns=["Date","open","high","low","close","volume"])
     print(df)
+    print(data["chart"]["result"][0]["timestamp"])
+    print(df.iloc[:,0])
+    #df.iloc[:,0].['Date'].replace('NAN',data["chart"]["result"][0]["timestamp"], inplace=True)
     
+    
+    """
     df = pd.DataFrame(
         data["chart"]["result"][0]["indicators"]["quote"][0],
             columns=["open","high","low","close","volume"])
     print(df)
+    """
+    
+    #print("df.iloc[4:9,0].mean()", df.iloc[0:9,0].mean()) #第一列平均值
     
     str_time=time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(end_time-86400*0))
     print("Time: ", str_time)
-    
     
     """ open   high    low  close    volume
     0  [0,0]  [0,1]  [0,2]  [0,3]  [0,4]
@@ -163,63 +193,14 @@ def stock_period_report(stock_code, stock_area, start_time, end_time):
     1  604.0  604.0  590.0  590.0  19158568
     2  598.0  600.0  593.0  600.0  17386359
     """
-    print(" ")
-    for i in range(5):
-        df.iloc[i+1, 0] = df.iloc[i+1, 0] + df.iloc[i, 0]
-    
-        print("df.iloc[  ",i," 0]=",df.iloc[i, 0])
-        print("df.iloc[1+",i," 0]=",df.iloc[i+1, 0])
-        print (df.iloc[4, 0]/5)
-    
 
-    """
-    str_time=time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(end_time-86400*5))
-    print("Time: ", str_time)
-    print(df.tail().iloc[4, 0])
-    str_time=time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(end_time-86400*4))
-    print("Time: ", str_time)
-    print(df.tail().iloc[3, 0])
-    str_time=time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(end_time-86400*3))
-    print("Time: ", str_time)
-    print(df.tail().iloc[2, 0])
-    str_time=time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(end_time-86400*2))
-    print("Time: ", str_time)
-    print(df.tail().iloc[1, 0])
-    str_time=time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(end_time-86400*1))
-    print("Time: ", str_time)
-    print(df.tail().iloc[0, 0])  
-    str_time=time.strftime("%Y--%m--%d %H:%M:%S", time.localtime(end_time-86400*0))
-    print("Time: ", str_time)
-    """
-
-    
-    """
-    # 把json格式資料放入pandas中
-    df = pd.DataFrame(
-        data["chart"]["result"][0]["indicators"]["quote"][0],
-        index=pd.to_datetime(
-            np.array(data["chart"]["result"][0]["timestamp"]) * 1000 * 1000 * 1000
-        ),
-        columns=["open","high","low","close","volume"]
-    )
-
-    #print (data)
-    # 印出前3行
-    print(df[:3])
-    
-    #印出前5行
-    print(df.head())
-    #印出後5行
-    print(df.tail())
-    
-    # 寫成csv
-    df.tail().to_csv(f"{stock_code}_最近五天.csv")
-    df.to_csv(f"{stock_code}_{start_time}_{end_time}.csv")
-    """
     print("===finished===")
     
     # 偽停頓
     time.sleep(5)
 
+
+#print (find_index())
+#print (stock_period_report(2330, "TW", "2021-10-15 09:00:00", "2021-10-28 13:30:00"))  
 print (stock2csv(2330, "TW", "2021-10-15 09:00:00", "2021-10-28 13:30:00"))  
 #print (StocK_MA(5))

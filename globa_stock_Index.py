@@ -59,14 +59,14 @@ def stock2csv(stock_code, stock_area, start_t, end_t):
     df.iloc[:,0]=data["chart"]["result"][0]["timestamp"]
     df.to_csv(f"{stock_code}_{str_start_time}_{str_end_time}.csv", index=False)
         
-    for i in df.iloc[:,0]:
-        struct_time = time.localtime(i)
-        print(time.strftime("%Y/%m/%d", struct_time))
-        #df.iloc[:,0] = time.strftime("%Y/%m/%d", struct_time)
+    df['Date'] = df['Date'].astype(str)
+    for idx, key in enumerate(df['Date'].keys()):
+        dateStr = time.strftime("%Y/%m/%d", time.localtime(int(df['Date'][key])))
+        df.at[key, 'Date'] = dateStr
 
-    #struct_time = time.localtime(df.iloc[i,0])
-    #df.iloc[:,0] = time.strftime("%Y/%m/%d", struct_time)
     print(df)
+    df.to_csv(f"new_{stock_code}_{str_start_time}_{str_end_time}.csv", index=False)
+    
     
 def monthly_report(year, month):
     print ("monthly_report()")
